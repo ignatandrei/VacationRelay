@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="VacationRelay/VacationRelay.csproj" />
   <Project Path="VR.Nuget/VR.Nuget.csproj" />
+  <Project Path="VR.Scripts/VR.Scripts.csproj" Id="f0e5c9e3-6369-4b6d-beea-0ea3da0cad72" />
 </Solution>

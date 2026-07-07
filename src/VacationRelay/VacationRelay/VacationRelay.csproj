@@ -12,5 +12,8 @@
 		<PackageReference Include="CommunityToolkit.Aspire.Hosting.SqlServer.Extensions" Version="13.4.1-beta.676" />
 		<PackageReference Include="SqlExtensionsAspire" Version="95.2025.1102.1042" />
 	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\VR.Scripts\VR.Scripts.csproj" IsAspireProjectResource="false"/>
+	</ItemGroup>
 
 </Project>
