@@ -12,6 +12,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<AdditionalFiles Include="SqlServer01.createTables.gen.txt" />
+		<AdditionalFiles Include="PostgreSQL01.createTables.gen.txt" />
 	</ItemGroup>
 	
 	<PropertyGroup>

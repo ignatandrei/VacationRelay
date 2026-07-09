@@ -1,0 +1,21 @@
+
+DROP TABLE IF EXISTS vr_data_history;
+DROP TABLE IF EXISTS vr_data;
+
+CREATE TABLE vr_data (
+    id               UUID          NOT NULL DEFAULT gen_random_uuid(),
+    idpersoninvacation VARCHAR(50) NOT NULL,
+    idpersonreplace    VARCHAR(50) NOT NULL,
+    fromdate           TIMESTAMPTZ  NOT NULL,
+    todate             TIMESTAMPTZ  NULL,
+    CONSTRAINT pk_vr_data PRIMARY KEY (id)
+);
+
+CREATE TABLE vr_data_history (
+    id               UUID          NOT NULL DEFAULT gen_random_uuid(),
+    idpersoninvacation VARCHAR(50) NOT NULL,
+    idpersonreplace    VARCHAR(50) NOT NULL,
+    fromdate           TIMESTAMPTZ  NOT NULL,
+    todate             TIMESTAMPTZ  NULL,
+    CONSTRAINT pk_vr_data_history PRIMARY KEY (id)
+);
