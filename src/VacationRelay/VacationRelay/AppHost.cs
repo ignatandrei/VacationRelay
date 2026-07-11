@@ -34,11 +34,9 @@ var mongo = builder.AddMongoDB("mongo",userName:username,password:password)
                    .WithMongoExpress()
                     .WithDbGate()
 ;
-    
-
 var mongodb = mongo
     .AddDatabase("mongodb","vacationrelay")
-    .ExecuteDBScripts("")
+    .ExecuteDBScripts(ScriptsData.GetScripts(DatabaseType.MongoDB))
     ;
 
 builder.Build().Run();

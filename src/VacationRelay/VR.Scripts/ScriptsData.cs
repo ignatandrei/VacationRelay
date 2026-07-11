@@ -15,6 +15,12 @@ public class ScriptsData
             [
                 MyAdditionalFiles.PostgreSQL01_createTables_gen_txt
             ],
+            DatabaseType.MongoDB =>
+            [
+                MyAdditionalFiles.MongoDb01_createTables_gen_txt,
+                MyAdditionalFiles.MongoDb02_createTables_gen_txt
+
+            ],
             _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType.ToString())
         };
         return ret;

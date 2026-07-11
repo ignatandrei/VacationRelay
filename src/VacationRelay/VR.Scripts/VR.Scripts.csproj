@@ -11,6 +11,8 @@
 
 	</ItemGroup>
 	<ItemGroup>
+		<AdditionalFiles Include="MongoDb02.createTables.gen.txt" />
+		<AdditionalFiles Include="MongoDb01.createTables.gen.txt" />
 		<AdditionalFiles Include="SqlServer01.createTables.gen.txt" />
 		<AdditionalFiles Include="PostgreSQL01.createTables.gen.txt" />
 	</ItemGroup>
