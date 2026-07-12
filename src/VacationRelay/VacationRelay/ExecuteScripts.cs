@@ -10,144 +10,120 @@ namespace VacationRelay;
 
 static class ExecuteScripts
 {
+    private static async Task<bool> ExecuteDbScriptsMongoDb(MongoDBDatabaseResource dbRes, ResourceReadyEvent ev, CancellationToken ct, string[] sqlScripts)
+    {
+        if (!(ev.Services.GetService(typeof(ResourceLoggerService)) is ResourceLoggerService resourceLoggerService))
+        {
+            Console.WriteLine("No ResourceLoggerService");
+            return false;
+        }
+        ILogger logger = resourceLoggerService.GetLogger(dbRes);
+        if (logger == null)
+        {
+            Console.WriteLine("No logger for " + dbRes.Name);
+            return false;
+        }
+        return await ExecuteDbScriptsMongoDb(dbRes, logger, ct, sqlScripts);
+    }
+    private static async Task<bool> ExecuteDbScriptsMongoDb(MongoDBDatabaseResource dbRes, ILogger logger, CancellationToken ct,string[] sqlScripts)
+    {
+        
+        string? cn = await dbRes.ConnectionStringExpression.GetValueAsync(ct);
+        if (cn == null)
+        {
+            logger.LogError($"Connection string is null for resource {dbRes.Name}");
+            return false;
+        }
+        using var connection = new MongoClient(cn);
+        var res = connection.GetDatabase(dbRes.DatabaseName);
+
+        bool hasError = false;
+        foreach (var sqlScript in sqlScripts)
+        {
+            try
+            {
+                var doc = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sqlScript);
+                var cmd = new BsonDocumentCommand<BsonDocument>(doc);
+                var result = await res.RunCommandAsync(cmd);
+                logger.LogInformation($"Executed MongoDB script: {sqlScript}, Result: {result.ToJson()}");
+            }
+            catch (Exception ex)
+            {
+                hasError = true;
+                logger.LogError(ex, $"Error executing MongoDB script: {sqlScript}");
+            }
+        }
+        if (hasError)
+        {
+            logger.LogError($"One or more scripts failed to execute for resource {dbRes.Name}");
+            return false;
+        }
+        return true;
+    }
     public static IResourceBuilder<MongoDBDatabaseResource> ExecuteDBScripts(this IResourceBuilder<MongoDBDatabaseResource> db, params string[] sqlScripts)
     {
 
+        db.WithCommand("ExecuteDBScripts", "ExecuteDBScripts",async (ecc) =>
+        {
+            
+            var result = await ExecuteDbScriptsMongoDb(db.Resource, ecc.Logger, ecc.CancellationToken, sqlScripts);
+            return result ? 
+            new ExecuteCommandResult() { Success = true , Message = "All scripts executed successfully." } : 
+                    new ExecuteCommandResult() { Success = false, Message = "One or more scripts failed to execute." };
+        });
+
         db.OnResourceReady(async delegate (MongoDBDatabaseResource dbRes, ResourceReadyEvent ev, CancellationToken ct)
         {
-            if (!(ev.Services.GetService(typeof(ResourceLoggerService)) is ResourceLoggerService resourceLoggerService))
-            {
-                Console.WriteLine("No ResourceLoggerService");
-                return;
-            }
-            ILogger logger = resourceLoggerService.GetLogger(db.Resource);
-            if (logger == null)
-            {
-                Console.WriteLine("No logger for " + db.Resource.Name);
-                return;
-            }            
-            string? cn = await dbRes.ConnectionStringExpression.GetValueAsync(ct);
-            if (cn == null)
-            {
-                logger.LogError($"Connection string is null for resource {db.Resource.Name}");
-                return;
-            }
-            using var connection = new MongoClient(cn);
-            var res = connection.GetDatabase(dbRes.DatabaseName);
-            
-            bool hasError = false;
-            foreach (var sqlScript in sqlScripts)
-            {
-                try
-                {
-                    var doc = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sqlScript);
-                    var cmd = new BsonDocumentCommand<BsonDocument>(doc);
-                    var result = await res.RunCommandAsync(cmd);
-                    logger.LogInformation($"Executed MongoDB script: {sqlScript}, Result: {result.ToJson()}");
-                }
-                catch (Exception ex)
-                {
-                    hasError = true;
-                    logger.LogError(ex, $"Error executing MongoDB script: {sqlScript}");
-                }
-            }
-            if (hasError)
-            {
-                logger.LogError($"One or more scripts failed to execute for resource {db.Resource.Name}");
-            }
+            await ExecuteDbScriptsMongoDb(dbRes, ev, ct, sqlScripts);
 
         });
         return db;
     }
+    private static async Task<bool> ExecuteDbScriptsPostgres(PostgresDatabaseResource dbRes, ResourceReadyEvent ev, CancellationToken ct, string[] sqlScripts)
+    {
+        if (!(ev.Services.GetService(typeof(ResourceLoggerService)) is ResourceLoggerService resourceLoggerService))
+        {
+            Console.WriteLine("No ResourceLoggerService");
+            return false;
+        }
+        ILogger logger = resourceLoggerService.GetLogger(dbRes);
+        if (logger == null)
+        {
+            Console.WriteLine("No logger for " + dbRes.Name);
+            return false;
+        }
+        string? cn = await dbRes.ConnectionStringExpression.GetValueAsync(ct);
+        if (cn == null)
+        {
+            logger.LogError($"Connection string is null for resource {dbRes.Name}");
+            return false;
+        }
+        using var connectionToRel = new Npgsql.NpgsqlConnection(cn);
+        await connectionToRel.OpenAsync();
+        return await ExecuteSqlScripts(connectionToRel, logger, ct, sqlScripts);
+    }
     public static IResourceBuilder<PostgresDatabaseResource> ExecuteDBScripts(this IResourceBuilder<PostgresDatabaseResource> db, params string[] sqlScripts)
     {
+        db.WithCommand("ExecuteDBScripts", "ExecuteDBScripts", async (ecc) =>
+        {
+            string? cn = await db.Resource.ConnectionStringExpression.GetValueAsync(ecc.CancellationToken);
+
+            using var connectionToRel = new Npgsql.NpgsqlConnection(cn);
+            await connectionToRel.OpenAsync();
+
+            var result = await ExecuteSqlScripts(connectionToRel, ecc.Logger, ecc.CancellationToken, sqlScripts);
+            return result ? 
+                new ExecuteCommandResult() { Success = true , Message = "All scripts executed successfully." } : 
+                new ExecuteCommandResult() { Success = false, Message = "One or more scripts failed to execute." };
+        });
         db.OnResourceReady(async delegate (PostgresDatabaseResource dbRes, ResourceReadyEvent ev, CancellationToken ct)
         {
-            if (!(ev.Services.GetService(typeof(ResourceLoggerService)) is ResourceLoggerService resourceLoggerService))
-            {
-                Console.WriteLine("No ResourceLoggerService");
-                return;
-            }
-            ILogger logger = resourceLoggerService.GetLogger(db.Resource);
-            if (logger == null)
-            {
-                Console.WriteLine("No logger for " + db.Resource.Name);
-                return;
-            }
-            string? cn = await dbRes.ConnectionStringExpression.GetValueAsync(ct);
-            if (cn == null)
-            {
-                logger.LogError($"Connection string is null for resource {db.Resource.Name}");
-                return;
-            }
-            var connectionToRel = new Npgsql.NpgsqlConnection(cn);
-            await connectionToRel.OpenAsync();
-            await ExecuteSqlScripts(connectionToRel, logger, ct, sqlScripts);
+            await ExecuteDbScriptsPostgres(dbRes, ev, ct, sqlScripts);
 
         });
             return db;
     }
-    //private static IResourceBuilder<T> ExecuteDBScripts<T>(this IResourceBuilder<T> db, params string[] sqlScripts) 
-    //    where T : IResourceWithConnectionString
-    //{
-        
-    //    db.OnResourceReady(async delegate (T dbRes, ResourceReadyEvent ev, CancellationToken ct)
-    //    {
-    //        string? cn = await dbRes.ConnectionStringExpression.GetValueAsync(ct);
-    //        if (cn != null)
-    //        {
-                
-    //            if (!(ev.Services.GetService(typeof(ResourceLoggerService)) is ResourceLoggerService resourceLoggerService))
-    //            {
-    //                Console.WriteLine("No ResourceLoggerService");
-    //            }
-    //            else
-    //            {
-    //                ILogger logger = resourceLoggerService.GetLogger(db.Resource);
-    //                if (logger == null)
-    //                {
-    //                    Console.WriteLine("No logger for " + db.Resource.Name);
-    //                }
-    //                else
-    //                {
-    //                    var type = typeof(T);
-    //                    DbConnection? connectionToRel = null;
-
-    //                if (type == typeof(MongoDBDatabaseResource))
-    //                {
-    //                        var connection = new MongoClient(cn);
-    //                        var doc =MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>("{ create: \"teastcollection\"}");
-    //                        var cmd = new BsonDocumentCommand<BsonDocument>(doc);
-    //                        //var cmd = new JsonCommand<BsonDocument>(" { create: \"teastcollection\", capped: true, size: 64 * 1024 }");
-    //                        //Dictionary<string,object> create=new Dictionary<string, object>();
-    //                        //create.Add("create", "test23dd");
-    //                        //create.Add("capped", true);
-    //                        //create.Add("size", 64 * 1024);
-    //                        //var cmd= new BsonDocumentCommand<BsonDocument>(new BsonDocument(create));
-    //                        var res= await connection.GetDatabase("vacationrelay").RunCommandAsync(cmd);
-    //                        logger.LogInformation($"MongoDB command result: {res.ToJson()}");
-    //                        //await ExecuteMongoScripts(connection, logger, ct,sqlScripts);
-    //                    }
-    //                if (type == typeof(PostgresDatabaseResource))
-    //                {
-    //                    connectionToRel = new Npgsql.NpgsqlConnection(cn);
-    //                    await connectionToRel.OpenAsync();
-    //                    await ExecuteSqlScripts(connectionToRel, logger, ct,  sqlScripts);
-    //                }
-    //                if(connectionToRel == null)
-    //                {
-    //                    logger.LogWarning($" {nameof(ExecuteDBScripts)} is not supported for resource type {type.Name}");
-    //                }
-
-
-    //                }
-    //            }
-    //        }
-    //    });
-    //    return db;
-
-    //}
-
+    
     private static async Task<bool> ExecuteSqlScripts(DbConnection con, ILogger logger, CancellationToken ct, string[] sqlScripts)         
     {
         
@@ -156,13 +132,28 @@ static class ExecuteScripts
             return false;
 
         }
+        bool hasError = false;
         foreach (string script in sqlScripts)
         {
-            using var cmd = con.CreateCommand();
-            cmd.CommandText = script;
-            await cmd.ExecuteNonQueryAsync();
+            try
+            {
+                using var cmd = con.CreateCommand();
+                cmd.CommandText = script;
+                var nr = await cmd.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error {ex.Message} executing SQL script: {script} ");
+                hasError = true;
+            }
+
+        }
+        if (hasError)
+        {
+            logger.LogError($"One or more scripts failed to execute ");
+            return false;
         }
 
-        return false;
+        return true;
     }
 }
