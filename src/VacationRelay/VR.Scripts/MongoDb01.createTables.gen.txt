@@ -1,1 +1,1 @@
-{ create: "vr_data"}
+{ "create": "vr_data" }

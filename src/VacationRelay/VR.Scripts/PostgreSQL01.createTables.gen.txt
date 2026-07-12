@@ -1,3 +1,4 @@
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 DROP TABLE IF EXISTS vr_data_history;
 DROP TABLE IF EXISTS vr_data;

@@ -21,7 +21,7 @@ public class ScriptsData
                 MyAdditionalFiles.MongoDb02_createTables_gen_txt
 
             ],
-            _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType.ToString())
+            _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, "Unsupported database type")
         };
         return ret;
     }

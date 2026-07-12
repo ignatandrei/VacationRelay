@@ -1,1 +1,1 @@
-{ create: "vr_data_history"}
+{ "create": "vr_data_history" }

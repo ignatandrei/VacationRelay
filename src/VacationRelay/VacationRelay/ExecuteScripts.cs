@@ -1,5 +1,4 @@
 ﻿
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -44,7 +43,7 @@ static class ExecuteScripts
             {
                 var doc = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sqlScript);
                 var cmd = new BsonDocumentCommand<BsonDocument>(doc);
-                var result = await res.RunCommandAsync(cmd);
+                var result = await res.RunCommandAsync(cmd, cancellationToken: ct);
                 logger.LogInformation($"Executed MongoDB script: {sqlScript}, Result: {result.ToJson()}");
             }
             catch (Exception ex)
@@ -99,7 +98,7 @@ static class ExecuteScripts
             return false;
         }
         using var connectionToRel = new Npgsql.NpgsqlConnection(cn);
-        await connectionToRel.OpenAsync();
+        await connectionToRel.OpenAsync(ct);
         return await ExecuteSqlScripts(connectionToRel, logger, ct, sqlScripts);
     }
     public static IResourceBuilder<PostgresDatabaseResource> ExecuteDBScripts(this IResourceBuilder<PostgresDatabaseResource> db, params string[] sqlScripts)
@@ -107,13 +106,18 @@ static class ExecuteScripts
         db.WithCommand("ExecuteDBScripts", "ExecuteDBScripts", async (ecc) =>
         {
             string? cn = await db.Resource.ConnectionStringExpression.GetValueAsync(ecc.CancellationToken);
+            if (string.IsNullOrWhiteSpace(cn))
+            {
+                ecc.Logger.LogError("Connection string is null or empty.");
+                return new ExecuteCommandResult() { Success = false, Message = "Connection string is null or empty." };
+            }
 
             using var connectionToRel = new Npgsql.NpgsqlConnection(cn);
-            await connectionToRel.OpenAsync();
+            await connectionToRel.OpenAsync(ecc.CancellationToken);
 
             var result = await ExecuteSqlScripts(connectionToRel, ecc.Logger, ecc.CancellationToken, sqlScripts);
-            return result ? 
-                new ExecuteCommandResult() { Success = true , Message = "All scripts executed successfully." } : 
+            return result ?
+                new ExecuteCommandResult() { Success = true , Message = "All scripts executed successfully." } :
                 new ExecuteCommandResult() { Success = false, Message = "One or more scripts failed to execute." };
         });
         db.OnResourceReady(async delegate (PostgresDatabaseResource dbRes, ResourceReadyEvent ev, CancellationToken ct)
@@ -135,11 +139,16 @@ static class ExecuteScripts
         bool hasError = false;
         foreach (string script in sqlScripts)
         {
+            if (ct.IsCancellationRequested)
+            {
+                return false;
+            }
+
             try
             {
                 using var cmd = con.CreateCommand();
                 cmd.CommandText = script;
-                var nr = await cmd.ExecuteNonQueryAsync();
+                await cmd.ExecuteNonQueryAsync(ct);
             }
             catch (Exception ex)
             {
