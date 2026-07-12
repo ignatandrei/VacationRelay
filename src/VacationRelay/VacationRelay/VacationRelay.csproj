@@ -1,0 +1,23 @@
+﻿<Project Sdk="Aspire.AppHost.Sdk/13.4.6">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>15a2c308-db09-47ea-8cfc-cee92503fb5f</UserSecretsId>
+  </PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.4.6" />
+		<PackageReference Include="Aspire.Hosting.SqlServer" Version="13.4.6" />
+		<PackageReference Include="CommunityToolkit.Aspire.Hosting.MongoDB.Extensions" Version="13.4.0" />
+		<PackageReference Include="CommunityToolkit.Aspire.Hosting.PostgreSQL.Extensions" Version="13.4.0" />
+		<PackageReference Include="CommunityToolkit.Aspire.Hosting.SqlServer.Extensions" Version="13.4.1-beta.676" />
+		<PackageReference Include="SqlExtensionsAspire" Version="95.2025.1102.1042" />
+		<PackageReference Include="Aspire.Hosting.MongoDB" Version="13.4.6" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\VR.Scripts\VR.Scripts.csproj" IsAspireProjectResource="false" />
+	</ItemGroup>
+
+</Project>

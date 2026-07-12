@@ -1,0 +1,40 @@
+USE [vacationrelay]
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[VR_Data_History]') AND type in (N'U'))
+DROP TABLE [dbo].[VR_Data_History]
+
+GO
+
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[VR_Data]') AND type in (N'U'))
+DROP TABLE [dbo].[VR_Data]
+
+GO
+
+CREATE TABLE [dbo].[VR_Data](
+	[ID] [uniqueidentifier] NOT NULL,
+	[IDPersonInVacation] [nvarchar](50) NOT NULL,
+	[IDPersonReplace] [nvarchar](50) NOT NULL,
+	[FromDate] [datetimeoffset](7) NOT NULL,
+	[ToDate] [datetimeoffset](7) NULL,
+ CONSTRAINT [PK_VR_Data] PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+CREATE TABLE [dbo].[VR_Data_History](
+	[ID] [uniqueidentifier] NOT NULL,
+	[IDPersonInVacation] [nvarchar](50) NOT NULL,
+	[IDPersonReplace] [nvarchar](50) NOT NULL,
+	[FromDate] [datetimeoffset](7) NOT NULL,
+	[ToDate] [datetimeoffset](7) NULL,
+ CONSTRAINT [PK_VR_Data_History] PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+ALTER TABLE [dbo].[VR_Data] ADD  CONSTRAINT [DF_VR_Data_ID]  DEFAULT (newsequentialid()) FOR [ID]
