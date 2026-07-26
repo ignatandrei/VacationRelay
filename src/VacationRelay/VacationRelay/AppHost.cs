@@ -39,4 +39,8 @@ var mongodb = mongo
     .ExecuteDBScripts(ScriptsData.GetScripts(DatabaseType.MongoDB))
     ;
 
+builder.AddSqlite("sqlite")
+    .WithSqliteWeb()
+    .ExecuteDBScripts(ScriptsData.GetScripts(DatabaseType.Sqlite));
+
 builder.Build().Run();
