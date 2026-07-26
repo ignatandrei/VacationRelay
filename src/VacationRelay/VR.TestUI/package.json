@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "dev":"echo 'please run other tests from the root folder . Aspire %ASPIRE_LOGIN_URL% '"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

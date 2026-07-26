@@ -1,8 +1,12 @@
+using AspireResourceExtensionsAspire;
+using JavaScriptExtensionsAspire;
 using SqlExtensionsAspire;
 using VacationRelay;
 using VR.Scripts;
 var builder = DistributedApplication.CreateBuilder(args);
 
+var aspire = builder.AddAspireResource();
+ArgumentNullException.ThrowIfNull(aspire, "Aspire resource is not available");
 var paramPass = builder.AddParameter("password", "myPa!ssW0rd");
 
 var sqlserver = builder.AddSqlServer("sqlserver", paramPass, 1433)
@@ -39,4 +43,19 @@ var mongodb = mongo
     .ExecuteDBScripts(ScriptsData.GetScripts(DatabaseType.MongoDB))
     ;
 
-builder.Build().Run();
+var tests = builder.AddJavaScriptApp("tests", @"..\VR.TestUI")
+        .AddNpmCommandsFromPackage()
+        ;
+
+aspire.Resource.AddEnvironmentVariablesTo(tests);
+
+var app = builder.Build();
+var result = aspire.Resource.StartParsing(app, builder);
+
+var runTask = app.RunAsync();
+
+await Task.WhenAll(runTask,result);
+//aspire.Resource.AddEnvironmentVariablesTo(tests);
+//await runTask;
+
+
