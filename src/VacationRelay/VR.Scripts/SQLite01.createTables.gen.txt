@@ -2,7 +2,7 @@ DROP TABLE IF EXISTS vr_data_history;
 DROP TABLE IF EXISTS vr_data;
 
 CREATE TABLE vr_data (
-    id               TEXT NOT NULL PRIMARY KEY,
+    id               TEXT NOT NULL PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
     idpersoninvacation TEXT NOT NULL,
     idpersonreplace    TEXT NOT NULL,
     fromdate           TEXT NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE vr_data (
 );
 
 CREATE TABLE vr_data_history (
-    id               TEXT NOT NULL PRIMARY KEY,
+    id               TEXT NOT NULL PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
     idpersoninvacation TEXT NOT NULL,
     idpersonreplace    TEXT NOT NULL,
     fromdate           TEXT NOT NULL,
