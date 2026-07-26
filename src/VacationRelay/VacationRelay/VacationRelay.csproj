@@ -17,6 +17,8 @@
 		<PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.10" />
 		<PackageReference Include="SqlExtensionsAspire" Version="95.2025.1102.1042" />
 		<PackageReference Include="Aspire.Hosting.MongoDB" Version="13.4.6" />
+		<!-- Promoted transitive dependencies to resolve known vulnerabilities -->
+		<PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.12-pre20260709125052" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\VR.Scripts\VR.Scripts.csproj" IsAspireProjectResource="false" />
