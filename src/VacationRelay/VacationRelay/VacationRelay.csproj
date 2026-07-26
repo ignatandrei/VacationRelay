@@ -14,7 +14,7 @@
 		<PackageReference Include="CommunityToolkit.Aspire.Hosting.Sqlite" Version="13.4.0" />
 		<PackageReference Include="CommunityToolkit.Aspire.Hosting.PostgreSQL.Extensions" Version="13.4.0" />
 		<PackageReference Include="CommunityToolkit.Aspire.Hosting.SqlServer.Extensions" Version="13.4.1-beta.676" />
-		<PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0" />
+		<PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.10" />
 		<PackageReference Include="SqlExtensionsAspire" Version="95.2025.1102.1042" />
 		<PackageReference Include="Aspire.Hosting.MongoDB" Version="13.4.6" />
 	</ItemGroup>
