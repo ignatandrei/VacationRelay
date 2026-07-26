@@ -21,6 +21,10 @@ public class ScriptsData
                 MyAdditionalFiles.MongoDb02_createTables_gen_txt
 
             ],
+            DatabaseType.Sqlite =>
+            [
+                MyAdditionalFiles.SQLite01_createTables_gen_txt
+            ],
             _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, "Unsupported database type")
         };
         return ret;

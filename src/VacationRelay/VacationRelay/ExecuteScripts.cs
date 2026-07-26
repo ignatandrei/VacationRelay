@@ -1,9 +1,11 @@
 ﻿
+using Aspire.Hosting.ApplicationModel;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using SqlExtensionsAspire;
 using System.Data.Common;
+using Microsoft.Data.Sqlite;
 
 namespace VacationRelay;
 
@@ -126,6 +128,61 @@ static class ExecuteScripts
 
         });
             return db;
+    }
+
+    private static async Task<bool> ExecuteDbScriptsSqlite(SqliteResource dbRes, ResourceReadyEvent ev, CancellationToken ct, string[] sqlScripts)
+    {
+        if (!(ev.Services.GetService(typeof(ResourceLoggerService)) is ResourceLoggerService resourceLoggerService))
+        {
+            Console.WriteLine("No ResourceLoggerService");
+            return false;
+        }
+
+        ILogger logger = resourceLoggerService.GetLogger(dbRes);
+        if (logger == null)
+        {
+            Console.WriteLine("No logger for " + dbRes.Name);
+            return false;
+        }
+
+        string? cn = await dbRes.ConnectionStringExpression.GetValueAsync(ct);
+        if (string.IsNullOrWhiteSpace(cn))
+        {
+            logger.LogError($"Connection string is null or empty for resource {dbRes.Name}");
+            return false;
+        }
+
+        using var connection = new SqliteConnection(cn);
+        await connection.OpenAsync(ct);
+        return await ExecuteSqlScripts(connection, logger, ct, sqlScripts);
+    }
+
+    public static IResourceBuilder<SqliteResource> ExecuteDBScripts(this IResourceBuilder<SqliteResource> db, params string[] sqlScripts)
+    {
+        db.WithCommand("ExecuteDBScripts", "ExecuteDBScripts", async (ecc) =>
+        {
+            string? cn = await db.Resource.ConnectionStringExpression.GetValueAsync(ecc.CancellationToken);
+            if (string.IsNullOrWhiteSpace(cn))
+            {
+                ecc.Logger.LogError("Connection string is null or empty.");
+                return new ExecuteCommandResult() { Success = false, Message = "Connection string is null or empty." };
+            }
+
+            using var connection = new SqliteConnection(cn);
+            await connection.OpenAsync(ecc.CancellationToken);
+
+            var result = await ExecuteSqlScripts(connection, ecc.Logger, ecc.CancellationToken, sqlScripts);
+            return result ?
+                new ExecuteCommandResult() { Success = true, Message = "All scripts executed successfully." } :
+                new ExecuteCommandResult() { Success = false, Message = "One or more scripts failed to execute." };
+        });
+
+        db.OnResourceReady(async delegate (SqliteResource dbRes, ResourceReadyEvent ev, CancellationToken ct)
+        {
+            await ExecuteDbScriptsSqlite(dbRes, ev, ct, sqlScripts);
+
+        });
+        return db;
     }
     
     private static async Task<bool> ExecuteSqlScripts(DbConnection con, ILogger logger, CancellationToken ct, string[] sqlScripts)         
