@@ -8,13 +8,17 @@
     <UserSecretsId>15a2c308-db09-47ea-8cfc-cee92503fb5f</UserSecretsId>
   </PropertyGroup>
 	<ItemGroup>
+		<PackageReference Include="Aspire.Hosting.JavaScript" Version="13.4.6" />
 		<PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.4.6" />
 		<PackageReference Include="Aspire.Hosting.SqlServer" Version="13.4.6" />
+		<PackageReference Include="AspireExtensionsResource" Version="130.2025.1121.547" />
 		<PackageReference Include="CommunityToolkit.Aspire.Hosting.MongoDB.Extensions" Version="13.4.0" />
 		<PackageReference Include="CommunityToolkit.Aspire.Hosting.Sqlite" Version="13.4.0" />
 		<PackageReference Include="CommunityToolkit.Aspire.Hosting.PostgreSQL.Extensions" Version="13.4.0" />
 		<PackageReference Include="CommunityToolkit.Aspire.Hosting.SqlServer.Extensions" Version="13.4.1-beta.676" />
+		<PackageReference Include="JavaScriptExtensionsAspire" Version="131.2026.117.2000" />
 		<PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.10" />
+		<PackageReference Include="PortExtensionsAspire" Version="134.2026.809.1615" />
 		<PackageReference Include="SqlExtensionsAspire" Version="95.2025.1102.1042" />
 		<PackageReference Include="Aspire.Hosting.MongoDB" Version="13.4.6" />
 		<!-- Promoted transitive dependencies to resolve known vulnerabilities -->
