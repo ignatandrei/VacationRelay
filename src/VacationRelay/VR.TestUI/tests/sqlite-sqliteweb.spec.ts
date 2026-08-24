@@ -1,69 +1,30 @@
-// spec: tests/db-admin-verification.plan.md
-// seed: tests/seed-sqliteweb.spec.ts
-
 import { test, expect } from '@playwright/test';
-import { getSqliteWebUrl, navigateToAspire } from './support/aspire-helpers';
-import { expectAndFlash, flash, sleep } from './support/playwright-helpers';
-
-test.beforeEach(async ({ page }, testInfo) => {
-  // Start recording a screencast of the test execution
-   testInfo.setTimeout(0); 
-  await page.screencast.start({ path: `${testInfo.title}_video.webm` });
-  await page.screencast.showActions({ position: 'top' });
-  await page.screencast.showOverlay('<div style="color: red">Demo Recording</div>');
-  await page.screencast.showChapter(`Starting ${testInfo.title}`, {
-    description: `Beginning of the ${testInfo.title}`,
-    duration: 5000,
-  });
-  await sleep(4); // Wait for 2 seconds to ensure the first chapter is recorded
-});
-
-test.afterEach(async ({ page }, testInfo) => {
-  // Stop recording the screencast after the test execution
-  await page.screencast.showOverlay('<div style="color: red">END!</div>');
-
-  await page.screencast.showChapter(`Ending ${testInfo.title}`, {
-    description: `End of the ${testInfo.title}`,
-    duration: 5000,
-  });
-  await sleep(4); // Wait for 2 seconds to ensure the last chapter is recorded
-  await page.screencast.stop();
-});
-
-const showChapter = async ({ page }: { page: any }, chapter: string, desc: string) => {
-  if(page?.screencast) {
-    await page.screencast.showChapter(chapter, {
-      description: desc,
-      duration: 1000,
-    });
-  }
-};
+import { getSqliteWebUrl, navigateToAspire, navigateToSourceCode } from './support/aspire-helpers';
+import { expectAndFlash, flash, sleep, videoFileName } from './support/playwright-helpers';
 
 test.describe('SQLite – SqliteWeb ', () => {
-  
   test('SQLite database is accessible and vr_data table exists in SqliteWeb', async ({ page },testInfo) => {
     const cast =await page.screencast;
-      //  cast.start({ path: `${testInfo.title}_video.webm` });
-      // await cast.showActions({ position: 'top-right', duration: 1000, fontSize: 18 })
-      //  await cast.showOverlays();
-       
-       var indicator = await cast.showOverlay(
+    var indicator = await cast.showOverlay(
   '<h1>https://github.com/ignatandrei/VacationRelay </h1>'
 );
 
-      await cast.showChapter('Demo for Show SqliteWeb database', {
+  await navigateToSourceCode(page, cast, 'AppHost.cs');
+  
+  await cast.showChapter('Now go to ASPIRE', {
   description: 'It will show the SqliteWeb database and the vr_data table',
   duration: 5000,
 });
 
-    
     await navigateToAspire(page);
 
     await sleep(2);
+    
     await cast.showChapter('Aspire Page', {
       description: 'SqliteWeb is accessible through Aspire',
       duration: 5000,
     });
+    
     await sleep(2);
     
     await flash(page.getByText('sqlite-sqliteweb' ,{ exact: true }))
@@ -73,7 +34,8 @@ test.describe('SQLite – SqliteWeb ', () => {
 
     await sleep(2);
     await cast.showChapter('Here it shows the SqliteWeb database', {
-      description: 'Hast 2 tables: vr_data and vr_data_history',
+
+      description: 'Has 2 tables: vr_data and vr_data_history',
       duration: 5000,
     });
     await sleep(2);
@@ -88,6 +50,8 @@ test.describe('SQLite – SqliteWeb ', () => {
     await expectAndFlash(page.getByText('vr_data_history').first());
 
     await sleep(2);
+
+    
     await cast.showChapter('Now we can see the vr_data definition', {
       description: 'Shows the structure and columns of the vr_data table',
       duration: 5000,
@@ -102,13 +66,17 @@ test.describe('SQLite – SqliteWeb ', () => {
     await expect(page.locator('.error, .alert-danger')).not.toBeVisible();
     
     await sleep(2);
-    await cast.showChapter('End of demo sqliteweb database ', {
-      description: 'https://github.com/ignatandrei/VacationRelay ',
+    
+    await navigateToSourceCode(page, cast, 'SQLite01.createTables.gen.txt');
+    
+    await cast.showChapter('End of demo sqliteweb database', {
+      description: 'If you want to see  the source code for this video , wait a bit',
       duration: 5000,
     });
     await sleep(2);
     
-    await page.screencast.stop();
+    await navigateToSourceCode(page, cast, 'sqlite-sqliteweb.spec.ts');
+    
   });
 
   test('SqliteWeb shows correct schema for vr_data table', async ({ page }) => {
@@ -128,4 +96,23 @@ test.describe('SQLite – SqliteWeb ', () => {
     // 4. Assert the 'id' column is present in the schema
     await expect(page.getByText('id').first()).toBeVisible();
   });
+});
+
+test.beforeEach(async ({ page }, testInfo) => {
+  // Start recording a screencast of the test execution
+  testInfo.setTimeout(0); 
+  await page.screencast.start({ path: `${videoFileName(testInfo)}` });
+  await page.screencast.showActions({ position: 'top' });
+  var indix = await page.screencast.showOverlay('<div style="color: red">Andrei Ignat</div>');
+  await page.screencast.showChapter(`Starting ${testInfo.title}`, {
+    description: `Beginning of the ${testInfo.title}`,
+    duration: 5000,
+  });
+  await sleep(4); // Wait for 2 seconds to ensure the first chapter is recorded
+  indix.dispose();
+});
+
+test.afterEach(async ({ page }, testInfo) => {
+  // Stop recording the screencast after the test execution
+  await page.screencast.stop();
 });

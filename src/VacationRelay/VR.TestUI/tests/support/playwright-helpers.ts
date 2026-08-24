@@ -1,5 +1,10 @@
-import { expect, Locator } from "@playwright/test";
+import { expect, Locator, TestInfo } from "@playwright/test";
 
+export  function videoFileName(testInfo: TestInfo): string {
+  const sanitizedTitle = testInfo.title.replace(/[^a-zA-Z0-9]/g, '_');
+  const fileName = `${sanitizedTitle}.webm`;
+  return fileName;
+}
 export async function flash(button:Locator ): Promise<void>  {
     await button.scrollIntoViewIfNeeded();
 

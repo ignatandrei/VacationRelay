@@ -8,7 +8,7 @@
  * ASPIRE_RESOURCE_SERVICE_ENDPOINT_URL defaults to https://localhost:22202
  */
 
-import type { Page } from '@playwright/test';
+import type { Page, Screencast } from '@playwright/test';
 
 export async function navigateToAspire(page: Page) {
   var login = process.env.ASPIRE_LOGIN_URL;
@@ -58,6 +58,31 @@ export function getSqliteWebUrl(): string {
   }
   return `http://localhost:${url}`;
 }
+
+import type { Response } from '@playwright/test';
+import { sleep } from './playwright-helpers';
+
+export async  function navigateToSourceCode(page: Page,cast: Screencast,  name: string): Promise<Response|null> {
+  
+  var port = process.env.PORT_FileDisplay;
+  if (!port) {
+    throw new Error(
+      'PORT_FileDisplay is not set. Start Aspire before running this test'
+    );
+  }
+  await sleep(2);
+  await cast.showChapter(`The code for ${name}`, {
+    description: `Viewing the source code for ${name}`,
+    duration: 5000,
+  });
+  await sleep(2);
+
+  var res=await  page.goto(`http://127.0.0.1:${port}/files/${name}`, { waitUntil: 'networkidle' });
+  await sleep(2);
+
+  return res;
+}
+
 
 export const DB_CREDENTIALS = {
   server:   process.env.SQLSERVER_HOST     ?? 'localhost',
