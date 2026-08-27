@@ -54,16 +54,18 @@ aspire!.Resource.AddEnvironmentVariablesTo(jsTest);
 //    .ExecuteDBScripts(ScriptsData.GetScripts(DatabaseType.Postgres))
 //    ;
 
-//var mongo = builder.AddMongoDB("mongo", userName: username, password: password,port: ports.Resource.GetDeterministicPort("mongodb"))
-//                   .WithLifetime(ContainerLifetime.Persistent)
-//                   .WithMongoExpress()
-//                    .WithPortReference(ports)
-//                    .WithDbGate()
-//;
-//var mongodb = mongo
-//    .AddDatabase("mongodb", "vacationrelay")
-//    .ExecuteDBScripts(ScriptsData.GetScripts(DatabaseType.MongoDB))
-//    ;
+var mongo = builder.AddMongoDB("mongo", userName: username, password: password)
+                   .WithLifetime(ContainerLifetime.Persistent)
+                   .WithMongoExpress(c=>
+                   {
+                       c.WithHostPort(ports.Resource.GetDeterministicPort("mongodb"));
+                   })
+                   //.WithDbGate()
+;
+var mongodb = mongo
+    .AddDatabase("mongodb", "vacationrelay")
+    .ExecuteDBScripts(ScriptsData.GetScripts(DatabaseType.MongoDB))
+    ;
 
 var app = builder.Build();
 

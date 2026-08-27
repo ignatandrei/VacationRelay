@@ -46,6 +46,7 @@ export function getMongoExpressUrl(): string {
       'PORT_mongodb is not set. Start Aspire before running this test.'
     );
   }
+  console.log(`Mongo Express URL: http://localhost:${url}`);
   return `http://localhost:${url}`;
 }
 
