@@ -62,7 +62,7 @@ export async function verifyDbAdminUiAccessible(
   page: Page,
   options: DbAdminVerificationOptions
 ): Promise<void> {
-  const cast: Screencast = await page.screencast;
+  const cast: Screencast =  page.screencast;
   const { dbLabel, resourceName, getUrl, tableNames, introSourceFiles = [], outroSourceFiles = [], login } = options;
   const openTableAndVerify = options.openTableAndVerify ?? defaultOpenTableAndVerify;
 

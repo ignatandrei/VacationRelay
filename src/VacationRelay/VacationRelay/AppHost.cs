@@ -61,7 +61,7 @@ var postgresdb = postgres
     .ExecuteDBScripts(ScriptsData.GetScripts(DatabaseType.Postgres))
     ;
 
-var mongo = builder.AddMongoDB("mongo", userName: username, password: password,port:5432)
+var mongo = builder.AddMongoDB("mongo", userName: username, password: password)
                    .WithLifetime(ContainerLifetime.Persistent)
                    .WithMongoExpress(c=>
                    {

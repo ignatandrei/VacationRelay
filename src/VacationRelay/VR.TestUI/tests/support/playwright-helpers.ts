@@ -23,6 +23,11 @@ export async function flash(button:Locator ): Promise<void>  {
       if (i > 7) {
         clearInterval(interval);
         el.style.background = '';
+        el.style.transition = '';
+         el.style.transform = '';
+         el.style.padding = '';
+         el.style.fontSize = '';
+         el.style.borderWidth = '';
       }
     }, 150);
   });
