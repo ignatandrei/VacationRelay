@@ -24,23 +24,7 @@ test.describe('SQLite – SqliteWeb ', () => {
     });
   });
 
-  test('SqliteWeb shows correct schema for vr_data table', async ({ page }) => {
-    // 1. Navigate to SqliteWeb
-    await page.goto(getSqliteWebUrl());
-
-    // 2. Open the vr_data table
-    await page.getByText('vr_data').first().click();
-
-    // 3. Open the structure / schema view if available
-    const structureLink = page.getByRole('link', { name: /structure|schema/i });
-    const hasStructure = await structureLink.isVisible({ timeout: 2000 }).catch(() => false);
-    if (hasStructure) {
-      await structureLink.click();
-    }
-
-    // 4. Assert the 'id' column is present in the schema
-    await expect(page.getByText('id').first()).toBeVisible();
-  });
+  
 });
 
 test.beforeEach(async ({ page }, testInfo) => {

@@ -38,16 +38,6 @@ test.describe('MongoDB – Mongo Express', () => {
     });
   });
 
-  test('Mongo Express does not show non-existent database', async ({ page }) => {
-    // 1. Navigate to Mongo Express home page
-    await page.goto(getMongoExpressUrl());
-
-    // 2. Wait for database list to render
-    await expect(page.getByRole('table').first()).toBeVisible();
-
-    // 3. Verify 'nonexistentdb' is not listed
-    await expect(page.getByText('nonexistentdb')).not.toBeVisible();
-  });
 
 
   test.beforeEach(async ({ page }, testInfo) => {

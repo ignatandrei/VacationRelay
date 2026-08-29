@@ -56,10 +56,10 @@ var postgres = builder.AddPostgres("postgres", username, password)
     })
     .WithPgAdmin()
 ;
-//var postgresdb = postgres
-//    .AddDatabase("postgresdb","vacationrelay")
-//    .ExecuteDBScripts(ScriptsData.GetScripts(DatabaseType.Postgres))
-//    ;
+var postgresdb = postgres
+    .AddDatabase("postgresdb", "vacationrelay")
+    .ExecuteDBScripts(ScriptsData.GetScripts(DatabaseType.Postgres))
+    ;
 
 var mongo = builder.AddMongoDB("mongo", userName: username, password: password,port:5432)
                    .WithLifetime(ContainerLifetime.Persistent)
@@ -89,6 +89,11 @@ files.AddFile(@"..\VR.TestUI\tests\mongodb-mongo-express.spec.ts", lines: ["test
 files.AddFile(relativePath: "AppHost.cs", name: "sqlserver", lines: ["builder.AddSqlServer", "ExecuteSqlServerScriptsAtStartup(ScriptsData.GetScripts(DatabaseType.SqlServer))"]);
 files.AddFile(@"..\VR.Scripts\SqlServer01.createTables.gen.txt", lines: ["vr_data"]);
 files.AddFile(@"..\VR.TestUI\tests\sqlserver-adminer.spec.ts", lines: ["test('SQL Server vacationrelay database is visible and tables exist in Adminer"]);
+
+files.AddFile(relativePath: "AppHost.cs", name: "postgres", lines: ["builder.AddPostgres", "ExecuteDBScripts(ScriptsData.GetScripts(DatabaseType.Postgres))"]);
+files.AddFile(@"..\VR.Scripts\PostgreSQL01.createTables.gen.txt", lines: ["vr_data"]);
+files.AddFile(@"..\VR.TestUI\tests\postgres-pgweb.spec.ts", lines: ["test('PostgreSQL vacationrelay database is listed and tables exist in PgWeb'"]);
+
 
 var app = builder.Build();
 
