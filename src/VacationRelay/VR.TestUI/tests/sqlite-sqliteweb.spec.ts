@@ -12,7 +12,7 @@ test.describe('SQLite – SqliteWeb ', () => {
       tableNames: ['vr_data', 'vr_data_history'],
       introSourceFiles: [
         {
-          name: 'AppHost.cs',
+          name: 'sqlite',
           title: 'Now go to ASPIRE',
           description: 'It will show the SqliteWeb database and the vr_data table',
         },

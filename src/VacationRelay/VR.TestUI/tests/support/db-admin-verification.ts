@@ -100,7 +100,7 @@ export async function verifyDbAdminUiAccessible(
   await sleep(2);
 
   // 3. Wait for the sidebar / table list to appear
-  await expectAndFlash(page.locator('#sidebar, .sidebar, nav, .table-list').first());
+  await expectAndFlash(page.locator('#sidebar, .sidebar, nav, .table-list,#breadcrumb').first());
 
   // 4. Assert every expected table/collection is listed
   for (const tableName of tableNames) {

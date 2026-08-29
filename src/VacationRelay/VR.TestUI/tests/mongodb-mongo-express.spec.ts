@@ -14,6 +14,17 @@ test.describe('MongoDB – Mongo Express', () => {
       resourceName: 'mongo-mongoexpress',
       getUrl: getMongoExpressUrl,
       tableNames: ['vacationrelay'],
+      introSourceFiles: [
+        {
+          name: 'mongodb',
+          title: 'Now go to ASPIRE',
+          description: 'It will show the Mongo Express database and the vr_data collection',
+        },
+      ],
+      outroSourceFiles: [
+        { name: 'MongoDb01.createTables.gen.txt', title: '', description: '' },
+        { name: 'mongodb-mongo-express.spec.ts', title: '', description: '' },
+      ],
       openTableAndVerify: async (page) => {
         // Click the 'View' link in the vacationrelay row, then in the vr_data row
         const vacationRelayRow = page.locator('tr', { hasText: 'vacationrelay' });

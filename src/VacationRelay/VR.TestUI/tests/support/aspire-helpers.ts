@@ -19,24 +19,24 @@ export async function navigateToAspire(page: Page) {
   ;
 }
 export function getAdminerUrl(): string {
-  const url = process.env.ADMINER_URL;
+  const url = process.env.PORT_sqlserver;
   if (!url) {
     throw new Error(
       'ADMINER_URL is not set. Start Aspire (dotnet run in VacationRelay/) then ' +
       'set ADMINER_URL to the adminer proxy URL shown in the Aspire dashboard.'
     );
   }
-  return url;
+  return `http://localhost:${url}`;
 }
 
 export function getPgWebUrl(): string {
-  const url = process.env.PGWEB_URL;
+  const url = process.env.PORT_postgres;
   if (!url) {
     throw new Error(
       'PGWEB_URL is not set. Start Aspire then set PGWEB_URL to the pgweb proxy URL.'
     );
   }
-  return url;
+  return `http://localhost:${url}`;
 }
 
 export function getMongoExpressUrl(): string {
