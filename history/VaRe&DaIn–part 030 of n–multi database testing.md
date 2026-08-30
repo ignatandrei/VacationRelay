@@ -110,3 +110,11 @@ References:
 Code: https://github.com/ignatandrei/VacationRelay/blob/main/src/VacationRelay/VacationRelay/AppHost.cs
 
 Tests: https://github.com/ignatandrei/VacationRelay/tree/main/src/VacationRelay/VR.TestUI/tests
+
+
+Video:
+
+https://ignatandrei.github.io/VacationRelay/multiTestUI/SQLServer.webm
+https://ignatandrei.github.io/VacationRelay/multiTestUI/MongoDB.webm
+https://ignatandrei.github.io/VacationRelay/multiTestUI/PostgreSQL.webm
+https://ignatandrei.github.io/VacationRelay/multiTestUI/SQLite.webm
