@@ -17,3 +17,9 @@ To support both perspectives, I need the following components:
 30. `InternetLoaderClass` discovers the remaining providers available online, compares them with the providers found by `LocalLoaderClass`, and downloads a provider on request when it is needed.
 
 40. `ConfigureStart` configures the database through the selected provider, including the database schema, tables, and any other required resources. 
+
+See the picture
+
+<p>
+<img src="https://ignatandrei.github.io/VacationRelay/DaIn/VaRe&DaIn050.svg" alt="Loader">
+</p>
