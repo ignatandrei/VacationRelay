@@ -1,3 +1,4 @@
+using Projects;
 using SqlExtensionsAspire;
 
 var builder = DistributedApplication.CreateBuilder(args);
@@ -93,6 +94,16 @@ files.AddFile(@"..\VR.TestUI\tests\sqlserver-adminer.spec.ts", lines: ["test('SQ
 files.AddFile(relativePath: "AppHost.cs", name: "postgres", lines: ["builder.AddPostgres", "ExecuteDBScripts(ScriptsData.GetScripts(DatabaseType.Postgres))"]);
 files.AddFile(@"..\VR.Scripts\PostgreSQL01.createTables.gen.txt", lines: ["vr_data"]);
 files.AddFile(@"..\VR.TestUI\tests\postgres-pgweb.spec.ts", lines: ["test('PostgreSQL vacationrelay database is listed and tables exist in PgWeb'"]);
+
+
+var api =builder.AddProject<VR_WebAPI>("VR-WebAPI", launchProfileName: "https");
+
+var pluginUi = builder.AddProject<EFCore_StartPlugins_Host>("plugin-ui", launchProfileName: "https")
+    .WithEnvironment("ApiBaseUrl", api.GetEndpoint("https"))
+    .WaitFor(api);
+
+api.WithEnvironment("PluginUiOrigins__0", pluginUi.GetEndpoint("https"))
+    .WithEnvironment("PluginUiOrigins__1", pluginUi.GetEndpoint("http"));
 
 
 var app = builder.Build();

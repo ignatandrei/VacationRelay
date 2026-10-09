@@ -1,0 +1,15 @@
+.plugin-row {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+
+.plugin-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 0 0 15rem;
+    text-align: left;
+    white-space: normal;
+}
