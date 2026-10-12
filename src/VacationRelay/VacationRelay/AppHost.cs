@@ -98,12 +98,12 @@ files.AddFile(@"..\VR.TestUI\tests\postgres-pgweb.spec.ts", lines: ["test('Postg
 
 var api =builder.AddProject<VR_WebAPI>("VR-WebAPI", launchProfileName: "https");
 
-var pluginUi = builder.AddProject<EFCore_StartPlugins_Host>("plugin-ui", launchProfileName: "https")
-    .WithEnvironment("ApiBaseUrl", api.GetEndpoint("https"))
-    .WaitFor(api);
+//var pluginUi = builder.AddProject<EFCore_StartPlugins_Host>("plugin-ui", launchProfileName: "https")
+//    .WithEnvironment("ApiBaseUrl", api.GetEndpoint("https"))
+//    .WaitFor(api);
 
-api.WithEnvironment("PluginUiOrigins__0", pluginUi.GetEndpoint("https"))
-    .WithEnvironment("PluginUiOrigins__1", pluginUi.GetEndpoint("http"));
+//api.WithEnvironment("PluginUiOrigins__0", pluginUi.GetEndpoint("https"))
+//    .WithEnvironment("PluginUiOrigins__1", pluginUi.GetEndpoint("http"));
 
 
 var app = builder.Build();

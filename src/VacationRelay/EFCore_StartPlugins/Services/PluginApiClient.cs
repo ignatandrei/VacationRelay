@@ -1,16 +1,16 @@
 using System.Net;
 using System.Net.Http.Json;
 using EFCore_StartPlugins.Models;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EFCore_StartPlugins.Services;
 
-public sealed class PluginApiClient(HttpClient http)
+public sealed class PluginApiClient([FromKeyedServices(Program.apiNameConfig)] HttpClient http)
 {
-    private Uri? apiBaseUri;
-
+    public string BaseAPIUrl => http.BaseAddress?.ToString() ??"";
     public async Task<PluginInfo[]> GetPluginsAsync()
     {
-        using var response = await http.GetAsync(await GetUriAsync("all"));
+        using var response = await http.GetAsync($"api/dain/plugins/all");
         await EnsureSuccessAsync(response);
         return await response.Content.ReadFromJsonAsync<PluginInfo[]>()
             ?? throw new InvalidOperationException("The plugin API returned an empty response.");
@@ -18,7 +18,7 @@ public sealed class PluginApiClient(HttpClient http)
 
     public async Task<string?> GetChosenPluginAsync()
     {
-        using var response = await http.GetAsync(await GetUriAsync("defaultPlugin"));
+        using var response = await http.GetAsync($"api/dain/plugins/defaultPlugin");
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
             return null;
@@ -29,7 +29,7 @@ public sealed class PluginApiClient(HttpClient http)
 
     public async Task<ConnectionTestResult> TestConnectionAsync(PluginConnection connection)
     {
-        using var response = await http.PostAsJsonAsync(await GetUriAsync("testConnection"), connection);
+        using var response = await http.PostAsJsonAsync($"api/dain/plugins/testConnection", connection);
         await EnsureSuccessAsync(response);
         return await response.Content.ReadFromJsonAsync<ConnectionTestResult>()
             ?? throw new InvalidOperationException("The connection test returned an empty response.");
@@ -37,24 +37,11 @@ public sealed class PluginApiClient(HttpClient http)
 
     public async Task SaveAsync(PluginConnection connection)
     {
-        using var response = await http.PostAsJsonAsync(await GetUriAsync("defaultPlugin"), connection);
+        using var response = await http.PostAsJsonAsync($"api/dain/plugins/defaultPlugin", connection);
         await EnsureSuccessAsync(response);
     }
 
-    private async Task<Uri> GetUriAsync(string path)
-    {
-        if (apiBaseUri == null)
-        {
-            var configuration = await http.GetFromJsonAsync<ClientConfiguration>("client-configuration");
-            if (!Uri.TryCreate(configuration?.ApiBaseUrl, UriKind.Absolute, out var uri)
-                || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
-            {
-                throw new InvalidOperationException("The plugin UI host has no valid API address.");
-            }
-            apiBaseUri = uri;
-        }
-        return new Uri(apiBaseUri, $"api/dain/plugins/{path}");
-    }
+    
 
     private static async Task EnsureSuccessAsync(HttpResponseMessage response)
     {

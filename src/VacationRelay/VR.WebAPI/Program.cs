@@ -39,6 +39,12 @@ app.UseCors("PluginUi");
 //app.UseHttpsRedirection();
 
 app.MapDain();
+if (app.Environment.IsDevelopment())
+{
+    app.UseWebAssemblyDebugging();
+}
+
+app.UseBlazorFrameworkFiles();
 
 app.Run();
 

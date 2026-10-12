@@ -3,7 +3,7 @@
 @using System.Text.Json
 @using EFCore_StartPlugins.Models
 @using EFCore_StartPlugins.Services
-@inject PluginApiClient PluginApi
+@inject PluginApiClient pluginApi
 
 <PageTitle>Database plugins</PageTitle>
 
@@ -91,14 +91,14 @@ else
     private string? chosenPlugin;
     private string? message;
     private bool isError;
-    private bool loading = true;
+    private bool loading = false;
     private bool busy;
     private bool connectionTestPassed;
 
     protected override async Task OnInitializedAsync()
     {
         editContext = new EditContext(connection);
-        await LoadAsync();
+        //await LoadAsync();
     }
 
     private async Task LoadAsync()
@@ -107,13 +107,13 @@ else
         message = null;
         try
         {
-            plugins = await PluginApi.GetPluginsAsync();
+            plugins = await pluginApi.GetPluginsAsync();
             if (plugins.Length == 0)
             {
                 SetMessage("No plugins are available. Load providers through the API and retry.", true);
                 return;
             }
-            chosenPlugin = await PluginApi.GetChosenPluginAsync();
+            chosenPlugin = await pluginApi.GetChosenPluginAsync();
             var saved = plugins.FirstOrDefault(plugin => plugin.ProviderName == chosenPlugin);
             if (saved != null)
             {
@@ -122,7 +122,11 @@ else
         }
         catch (Exception ex) when (IsApiError(ex))
         {
-            SetMessage($"Could not load plugins: {ex.Message}", true);
+            SetMessage($"Could not load plugins from {pluginApi.BaseAPIUrl} : {ex.Message}", true);
+        }
+        catch (Exception ex)
+        {
+            SetMessage($"An unexpected error occurred: {ex.Message}", true);
         }
         finally
         {
@@ -155,7 +159,7 @@ else
         message = null;
         try
         {
-            var result = await PluginApi.TestConnectionAsync(connection);
+            var result = await pluginApi.TestConnectionAsync(connection);
             connectionTestPassed = result.Success;
             SetMessage(result.Message, !result.Success);
         }
@@ -179,7 +183,7 @@ else
         message = null;
         try
         {
-            await PluginApi.SaveAsync(connection);
+            await pluginApi.SaveAsync(connection);
             chosenPlugin = connection.PluginName;
             SetMessage($"Saved {chosenPlugin} as the chosen provider.", false);
         }

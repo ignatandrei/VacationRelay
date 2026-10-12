@@ -30,7 +30,6 @@
 		<PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.12-pre20260709125052" />
 	</ItemGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\EFCore_StartPlugins.Host\EFCore_StartPlugins.Host.csproj" />
 	  <ProjectReference Include="..\VR.Scripts\VR.Scripts.csproj" IsAspireProjectResource="false" />
 	  <ProjectReference Include="..\VR.WebAPI\VR.WebAPI.csproj" />
 	</ItemGroup>
