@@ -15,6 +15,12 @@ public sealed class PluginApiClient([FromKeyedServices(Program.apiNameConfig)] H
         return await response.Content.ReadFromJsonAsync<PluginInfo[]>()
             ?? throw new InvalidOperationException("The plugin API returned an empty response.");
     }
+    public async Task<bool> ExistsPluginsAsync()
+    {
+        using var response = await http.GetAsync($"api/dain/plugins/exists");
+        await EnsureSuccessAsync(response);
+        return await response.Content.ReadFromJsonAsync<bool>();
+    }
 
     public async Task<string?> GetChosenPluginAsync()
     {

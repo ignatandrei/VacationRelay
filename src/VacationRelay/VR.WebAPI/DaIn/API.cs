@@ -17,6 +17,18 @@ public static class API
     public static void MapDain(this WebApplication app)
     {
         var grp = app.MapGroup("/api/dain/plugins");
+        grp.MapGet("/exists", () =>
+        {
+            try
+            {
+                return Results.Ok(ExistsPlugins());
+            }
+            catch (Exception ex)
+            {
+                app.Logger.LogError(ex, "Checking for plugins failed");
+                return Results.Problem("Failed to check for plugins. Check the API logs.");
+            }
+        });
         grp.MapGet("/all", () =>
         {
             var availablePlugins = GetPlugins();
@@ -122,7 +134,16 @@ public static class API
         }
         return null;
     }
+    private static bool ExistsPlugins()
+    {
+        var assemblies = EfCorePluginLoader_10.DiscoverPluginAssemblies(PluginsDirectory);
+        if (assemblies == null)
+        {
+            return false;
+        }
 
+        return assemblies.Any();
+    }
     private static IReadOnlyList<IEFCore_DatabasePlugin> GetPlugins()
     {
         var assemblies = EfCorePluginLoader_10.DiscoverPluginAssemblies(PluginsDirectory);

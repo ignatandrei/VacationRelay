@@ -98,9 +98,22 @@ else
     protected override async Task OnInitializedAsync()
     {
         editContext = new EditContext(connection);
-        //await LoadAsync();
+        await LoadIfExists();
     }
+    private async Task LoadIfExists()
+    {
+        try{
+            var exists = await pluginApi.ExistsPluginsAsync();
+            if (!exists) return;
+            await LoadAsync();
 
+        }
+
+        catch (Exception)
+        {
+            return;
+        }
+    }
     private async Task LoadAsync()
     {
         loading = true;
