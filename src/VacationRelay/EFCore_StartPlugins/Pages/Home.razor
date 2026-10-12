@@ -1,0 +1,227 @@
+﻿@page "/"
+
+@using System.Text.Json
+@using EFCore_StartPlugins.Models
+@using EFCore_StartPlugins.Services
+@inject PluginApiClient pluginApi
+
+<PageTitle>Database plugins</PageTitle>
+
+<h1>Database plugins</h1>
+<p>Select a provider, enter its connection settings, then test the connection before saving your choice.</p>
+
+@if (message != null)
+{
+    <div class="alert @(isError ? "alert-danger" : "alert-success")" role="status">@message</div>
+}
+
+@if (loading)
+{
+    <p role="status">Loading plugins...</p>
+}
+else if (plugins.Length == 0)
+{
+    <button class="btn btn-secondary" @onclick="LoadAsync">Retry loading plugins</button>
+}
+else
+{
+    @if (chosenPlugin != null)
+    {
+        <p>Saved provider: <strong>@chosenPlugin</strong></p>
+    }
+
+    @foreach (var needsServer in new[] { false, true })
+    {
+        <fieldset class="mb-4" disabled="@busy">
+            <legend class="h5">@(needsServer ? "Requires a server" : "No server required")</legend>
+            <div class="plugin-row">
+                @foreach (var plugin in plugins.Where(plugin => plugin.NeedServer == needsServer))
+                {
+                    <button type="button"
+                            class="plugin-card btn @(connection.PluginName == plugin.ProviderName ? "btn-primary" : "btn-outline-secondary")"
+                            aria-pressed="@(connection.PluginName == plugin.ProviderName ? "true" : "false")"
+                            @onclick="() => SelectPlugin(plugin)">
+                        <strong>@plugin.ProviderName</strong>
+                        <span>@plugin.Description</span>
+                        <small>Version @plugin.Version</small>
+                    </button>
+                }
+                @if (!plugins.Any(plugin => plugin.NeedServer == needsServer))
+                {
+                    <p>No providers in this category.</p>
+                }
+            </div>
+        </fieldset>
+    }
+
+    <EditForm EditContext="@editContext" OnValidSubmit="SaveAsync">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <fieldset disabled="@(busy || string.IsNullOrEmpty(connection.PluginName))">
+            <legend class="h5">Connection settings @connection.PluginName</legend>
+            <div class="mb-3">
+                <label for="connection-string" class="form-label">Connection string</label>
+                <InputText id="connection-string" type="password" class="form-control"
+                           autocomplete="off" @bind-Value="connection.ConnectionString"
+                           @oninput="InvalidateConnectionTest" />
+                <div class="form-text">The API tests this connection from its host, not from your browser.</div>
+                <ValidationMessage For="() => connection.ConnectionString" />
+            </div>
+            <div class="mb-3">
+                <label for="database-name" class="form-label">Database name</label>
+                <InputText id="database-name" class="form-control" @bind-Value="connection.DatabaseName"
+                           @oninput="InvalidateConnectionTest" />
+                <ValidationMessage For="() => connection.DatabaseName" />
+            </div>
+            <button type="button" class="btn btn-outline-primary me-2" @onclick="TestAsync">Test connection</button>
+            <button type="submit" class="btn btn-primary" disabled="@(!connectionTestPassed || busy)">Save chosen plugin</button>
+        </fieldset>
+    </EditForm>
+
+    @if (busy)
+    {
+        <p class="mt-3" role="status">Processing...</p>
+    }
+}
+
+@code {
+    private PluginInfo[] plugins = [];
+    private readonly PluginConnection connection = new();
+    private EditContext editContext = default!;
+    private string? chosenPlugin;
+    private string? message;
+    private bool isError;
+    private bool loading = false;
+    private bool busy;
+    private bool connectionTestPassed;
+
+    protected override async Task OnInitializedAsync()
+    {
+        editContext = new EditContext(connection);
+        await LoadIfExists();
+    }
+    private async Task LoadIfExists()
+    {
+        try{
+            var exists = await pluginApi.ExistsPluginsAsync();
+            if (!exists) return;
+            await LoadAsync();
+
+        }
+
+        catch (Exception)
+        {
+            return;
+        }
+    }
+    private async Task LoadAsync()
+    {
+        loading = true;
+        message = null;
+        try
+        {
+            plugins = await pluginApi.GetPluginsAsync();
+            if (plugins.Length == 0)
+            {
+                SetMessage("No plugins are available. Load providers through the API and retry.", true);
+                return;
+            }
+            chosenPlugin = await pluginApi.GetChosenPluginAsync();
+            var saved = plugins.FirstOrDefault(plugin => plugin.ProviderName == chosenPlugin);
+            if (saved != null)
+            {
+                SelectPlugin(saved);
+            }
+        }
+        catch (Exception ex) when (IsApiError(ex))
+        {
+            SetMessage($"Could not load plugins from {pluginApi.BaseAPIUrl} : {ex.Message}", true);
+        }
+        catch (Exception ex)
+        {
+            SetMessage($"An unexpected error occurred: {ex.Message}", true);
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void SelectPlugin(PluginInfo plugin)
+    {
+        InvalidateConnectionTest();
+        connection.PluginName = plugin.ProviderName;
+        connection.ConnectionString = "";
+        connection.DatabaseName = "";
+        editContext = new EditContext(connection);
+        message = null;
+    }
+
+    private async Task TestAsync()
+    {
+        if (busy)
+        {
+            return;
+        }
+        InvalidateConnectionTest();
+        if (!editContext.Validate())
+        {
+            return;
+        }
+        busy = true;
+        message = null;
+        try
+        {
+            var result = await pluginApi.TestConnectionAsync(connection);
+            connectionTestPassed = result.Success;
+            SetMessage(result.Message, !result.Success);
+        }
+        catch (Exception ex) when (IsApiError(ex))
+        {
+            SetMessage($"Connection test failed: {ex.Message}", true);
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        if (busy || !connectionTestPassed)
+        {
+            return;
+        }
+        busy = true;
+        message = null;
+        try
+        {
+            await pluginApi.SaveAsync(connection);
+            chosenPlugin = connection.PluginName;
+            SetMessage($"Saved {chosenPlugin} as the chosen provider.", false);
+        }
+        catch (Exception ex) when (IsApiError(ex))
+        {
+            SetMessage($"Saving failed: {ex.Message}", true);
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private static bool IsApiError(Exception exception) =>
+        exception is HttpRequestException or TaskCanceledException or JsonException or InvalidOperationException;
+
+    private void InvalidateConnectionTest()
+    {
+        connectionTestPassed = false;
+        message = null;
+    }
+
+    private void SetMessage(string text, bool error)
+    {
+        message = text;
+        isError = error;
+    }
+}
