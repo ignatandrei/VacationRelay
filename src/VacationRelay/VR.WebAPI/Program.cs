@@ -16,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.RegisterDain();
 // Register middleware implementation
-builder.Services.AddTransient<PluginFallbackMiddleware>();
+builder.Services.AddSingleton<PluginFallbackMiddleware>();
 //var pluginUiOrigins = builder.Configuration.GetSection("PluginUiOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(options => options.AddPolicy("PluginUi", policy =>
 {

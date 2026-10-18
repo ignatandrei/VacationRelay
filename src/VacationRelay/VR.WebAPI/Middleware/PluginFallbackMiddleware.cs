@@ -10,7 +10,7 @@ namespace VR.WebAPI.Middleware;
 public class PluginFallbackMiddleware : IMiddleware
 {
     private readonly ILogger<PluginFallbackMiddleware> _logger;
-    private bool? _hasPlugin;
+    private static bool? _hasPlugin;
     private readonly string _fallback;
 
     /// <summary>
@@ -27,7 +27,11 @@ public class PluginFallbackMiddleware : IMiddleware
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
         var path = context.Request.Path.Value ?? string.Empty;
-
+        if (path.StartsWith("/dain", StringComparison.OrdinalIgnoreCase))
+        {
+            await next(context);
+            return;
+        }
         // Always allow plugin management endpoints through
         if (path.StartsWith("/api/dain/plugins", StringComparison.OrdinalIgnoreCase))
         {
