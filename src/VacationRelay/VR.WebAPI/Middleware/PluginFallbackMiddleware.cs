@@ -10,8 +10,9 @@ namespace VR.WebAPI.Middleware;
 public class PluginFallbackMiddleware : IMiddleware
 {
     private readonly ILogger<PluginFallbackMiddleware> _logger;
-    private bool? _hasPlugin = false;
+    private bool? _hasPlugin;
     private readonly string _fallback;
+
     /// <summary>
     /// reading Dain:FallbackUrl from configuration
     /// </summary>
@@ -20,7 +21,7 @@ public class PluginFallbackMiddleware : IMiddleware
     public PluginFallbackMiddleware(ILogger<PluginFallbackMiddleware> logger, IConfiguration configuration)
     {
         _logger = logger;
-        _fallback = configuration["Dain:NoPluginChosenUrl"] ??"/dain";
+        _fallback = configuration["Dain:NoPluginChosenUrl"] ?? "/dain";
     }
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
@@ -31,39 +32,44 @@ public class PluginFallbackMiddleware : IMiddleware
         if (path.StartsWith("/api/dain/plugins", StringComparison.OrdinalIgnoreCase))
         {
             await next(context);
-            return; 
+            return;
         }
-        if(_hasPlugin.HasValue)
+
+        // First request: read and await.
+        if (!_hasPlugin.HasValue)
         {
-            if(_hasPlugin.Value)
-            {   
-                await next(context);
-                return;
-            }            
+            await RefreshHasPluginAsync();
         }
-        try
+        else
         {
-            var (plugin, connection) = await EfCorePluginLoader_10.RetrieveLatestChosenPlugin(VR.DaIn.API.PluginsDirectory);
-            _hasPlugin = (plugin != null);
-            if (plugin != null)
-            {
-                // chosen plugin exists, continue normal pipeline
-                await next(context);
-                return;
-            }
+            // Next requests: use cached value immediately, refresh in background.
+            _ = RefreshHasPluginAsync();
         }
-        catch (Exception ex)
+
+        if (_hasPlugin == true)
         {
-            // Log and continue the pipeline rather than fail the request
-            _logger.LogError(ex, "Failed to determine chosen plugin");
             await next(context);
             return;
         }
 
+        
         // No plugin selected / available => redirect to fallback URL
         var original = (context.Request.Path + context.Request.QueryString).ToString();
-        var target = _fallback.TrimEnd('/') +"?"+ original;
+        var target = _fallback.TrimEnd('/') + "?" + original;
         _logger.LogInformation("Redirecting request {RequestPath} to fallback {Fallback}", original, target);
         context.Response.Redirect(target, permanent: false);
+    }
+
+    private async Task RefreshHasPluginAsync()
+    {
+        try
+        {
+            var (plugin, _) = await EfCorePluginLoader_10.RetrieveLatestChosenPlugin(VR.DaIn.API.PluginsDirectory);
+            _hasPlugin = plugin != null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to determine chosen plugin");
+        }
     }
 }
