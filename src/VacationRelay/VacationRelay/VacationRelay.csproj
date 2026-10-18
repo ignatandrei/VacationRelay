@@ -1,4 +1,4 @@
-<Project Sdk="Aspire.AppHost.Sdk/13.6.0">
+<Project Sdk="Aspire.AppHost.Sdk/13.6.1">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -11,23 +11,23 @@
 		<AspireUseCliBundle>true</AspireUseCliBundle>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Aspire.Hosting.JavaScript" Version="13.6.0" />
-		<PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.6.0" />
-		<PackageReference Include="Aspire.Hosting.SqlServer" Version="13.6.0" />
+		<PackageReference Include="Aspire.Hosting.JavaScript" Version="13.6.1" />
+		<PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.6.1" />
+		<PackageReference Include="Aspire.Hosting.SqlServer" Version="13.6.1" />
 		<PackageReference Include="AspireExtensionsResource" Version="130.2025.1121.547" />
 		<PackageReference Include="AspireFileDisplayExtension" Version="134.2026.828.1615" />
 		<PackageReference Include="BlazorExtensionsAspire" Version="131.2026.123.2107" />
-		<PackageReference Include="CommunityToolkit.Aspire.Hosting.MongoDB.Extensions" Version="13.4.0" />
-		<PackageReference Include="CommunityToolkit.Aspire.Hosting.Sqlite" Version="13.4.0" />
-		<PackageReference Include="CommunityToolkit.Aspire.Hosting.PostgreSQL.Extensions" Version="13.4.0" />
-		<PackageReference Include="CommunityToolkit.Aspire.Hosting.SqlServer.Extensions" Version="13.4.1-beta.676" />
+		<PackageReference Include="CommunityToolkit.Aspire.Hosting.MongoDB.Extensions" Version="13.6.0" />
+		<PackageReference Include="CommunityToolkit.Aspire.Hosting.Sqlite" Version="13.6.0" />
+		<PackageReference Include="CommunityToolkit.Aspire.Hosting.PostgreSQL.Extensions" Version="13.6.0" />
+		<PackageReference Include="CommunityToolkit.Aspire.Hosting.SqlServer.Extensions" Version="13.6.0" />
 		<PackageReference Include="JavaScriptExtensionsAspire" Version="131.2026.117.2000" />
-		<PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.10" />
+		<PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.13" />
 		<PackageReference Include="PortExtensionsAspire" Version="134.2026.829.1515" />
 		<PackageReference Include="SqlExtensionsAspire" Version="95.2025.1102.1042" />
-		<PackageReference Include="Aspire.Hosting.MongoDB" Version="13.6.0" />
+		<PackageReference Include="Aspire.Hosting.MongoDB" Version="13.6.1" />
 		<!-- Promoted transitive dependencies to resolve known vulnerabilities -->
-		<PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.12-pre20260709125052" />
+		<PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.53.3" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\VR.Scripts\VR.Scripts.csproj" IsAspireProjectResource="false" />
