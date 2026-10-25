@@ -1,0 +1,290 @@
+@page "/vrdata"
+@using VR_GUI.Models
+@inject HttpClient Http
+
+<PageTitle>Vacation relay data</PageTitle>
+
+<h1>Vacation relay data</h1>
+
+<section class="mb-4" aria-labelledby="filter-heading">
+    <h2 id="filter-heading" class="h4">Find records</h2>
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label" for="filter-vacation">Person in vacation</label>
+            <input id="filter-vacation" class="form-control" @bind="idPersonInVacationFilter" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label" for="filter-replacement">Replacement person</label>
+            <input id="filter-replacement" class="form-control" @bind="idPersonReplacingFilter" />
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" @onclick="LoadRecordsAsync" disabled="@isBusy">Search</button>
+            <button class="btn btn-outline-secondary" @onclick="ClearFiltersAsync" disabled="@isBusy">Clear</button>
+        </div>
+    </div>
+</section>
+
+@if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <div class="alert alert-danger" role="alert">@errorMessage</div>
+}
+@if (!string.IsNullOrWhiteSpace(successMessage))
+{
+    <div class="alert alert-success" role="status">@successMessage</div>
+}
+
+<section class="mb-5" aria-labelledby="records-heading">
+    <h2 id="records-heading" class="h4">Records</h2>
+    @if (isLoading)
+    {
+        <p><em>Loading records...</em></p>
+    }
+    else if (records.Count == 0)
+    {
+        <p>No vacation relay records found.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Person in vacation</th>
+                        <th>Replacement person</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var record in records)
+                    {
+                        <tr @key="record.Id">
+                            <td>@record.IdpersonInVacation</td>
+                            <td>@record.IdpersonReplace</td>
+                            <td>@record.FromDate.ToLocalTime().ToString("d")</td>
+                            <td>@(record.ToDate?.ToLocalTime().ToString("d") ?? "Ongoing")</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary me-2" @onclick="() => LoadRecordAsync(record.Id)" disabled="@isBusy">Details</button>
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteRecordAsync(record.Id)" disabled="@isBusy">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+@if (selectedRecord is not null)
+{
+    <section class="mb-5" aria-labelledby="details-heading">
+        <h2 id="details-heading" class="h4">Record details</h2>
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">@selectedRecord.Id</dd>
+            <dt class="col-sm-3">Person in vacation</dt>
+            <dd class="col-sm-9">@selectedRecord.IdpersonInVacation</dd>
+            <dt class="col-sm-3">Replacement person</dt>
+            <dd class="col-sm-9">@selectedRecord.IdpersonReplace</dd>
+            <dt class="col-sm-3">From</dt>
+            <dd class="col-sm-9">@selectedRecord.FromDate.ToLocalTime().ToString("g")</dd>
+            <dt class="col-sm-3">To</dt>
+            <dd class="col-sm-9">@(selectedRecord.ToDate?.ToLocalTime().ToString("g") ?? "Ongoing")</dd>
+        </dl>
+    </section>
+}
+
+<section aria-labelledby="create-heading">
+    <h2 id="create-heading" class="h4">Add a vacation relay</h2>
+    <EditForm Model="newRecord" OnValidSubmit="CreateRecordAsync">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label" for="new-vacation">Person in vacation</label>
+                <InputText id="new-vacation" class="form-control" @bind-Value="newRecord.IdpersonInVacation" required />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="new-replacement">Replacement person</label>
+                <InputText id="new-replacement" class="form-control" @bind-Value="newRecord.IdpersonReplace" required />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="new-from">From date</label>
+                <InputDate id="new-from" class="form-control" @bind-Value="newRecord.FromDate" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="new-to">To date (optional)</label>
+                <InputDate id="new-to" class="form-control" @bind-Value="newRecord.ToDate" />
+            </div>
+            <div class="col-12">
+                <button class="btn btn-success" type="submit" disabled="@isBusy">Create record</button>
+            </div>
+        </div>
+    </EditForm>
+</section>
+
+@code {
+    private readonly List<VrDataItem> records = [];
+    private readonly NewVrDataRecord newRecord = new() { FromDate = DateTime.Today };
+    private string idPersonInVacationFilter = string.Empty;
+    private string idPersonReplacingFilter = string.Empty;
+    private string? errorMessage;
+    private string? successMessage;
+    private VrDataItem? selectedRecord;
+    private bool isBusy;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRecordsAsync();
+    }
+
+    private async Task LoadRecordsAsync()
+    {
+        isBusy = true;
+        isLoading = true;
+        errorMessage = null;
+        successMessage = null;
+        try
+        {
+            var filters = new List<string>();
+            if (!string.IsNullOrWhiteSpace(idPersonInVacationFilter))
+            {
+                filters.Add($"idPersonInVacation={Uri.EscapeDataString(idPersonInVacationFilter.Trim())}");
+            }
+            if (!string.IsNullOrWhiteSpace(idPersonReplacingFilter))
+            {
+                filters.Add($"idPersonReplacing={Uri.EscapeDataString(idPersonReplacingFilter.Trim())}");
+            }
+
+            var url = "api/vrdata/" + (filters.Count == 0 ? string.Empty : $"?{string.Join("&", filters)}");
+            var result = await Http.GetFromJsonAsync<List<VrDataItem>>(url);
+            records.Clear();
+            records.AddRange(result ?? []);
+            selectedRecord = null;
+        }
+        catch (HttpRequestException exception)
+        {
+            errorMessage = $"Unable to load vacation relay records: {exception.Message}";
+        }
+        finally
+        {
+            isBusy = false;
+            isLoading = false;
+        }
+    }
+
+    private async Task ClearFiltersAsync()
+    {
+        idPersonInVacationFilter = string.Empty;
+        idPersonReplacingFilter = string.Empty;
+        await LoadRecordsAsync();
+    }
+
+    private async Task LoadRecordAsync(Guid id)
+    {
+        isBusy = true;
+        errorMessage = null;
+        successMessage = null;
+        try
+        {
+            selectedRecord = await Http.GetFromJsonAsync<VrDataItem>($"api/vrdata/{id}");
+            if (selectedRecord is null)
+            {
+                errorMessage = "The requested record was not found.";
+            }
+        }
+        catch (HttpRequestException exception)
+        {
+            errorMessage = $"Unable to load the selected record: {exception.Message}";
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+
+    private async Task CreateRecordAsync()
+    {
+        isBusy = true;
+        errorMessage = null;
+        successMessage = null;
+        try
+        {
+            var request = new VrDataItem
+            {
+                IdpersonInVacation = newRecord.IdpersonInVacation.Trim(),
+                IdpersonReplace = newRecord.IdpersonReplace.Trim(),
+                FromDate = new DateTimeOffset(DateTime.SpecifyKind(newRecord.FromDate.Date, DateTimeKind.Utc)),
+                ToDate = newRecord.ToDate is null
+                    ? null
+                    : new DateTimeOffset(DateTime.SpecifyKind(newRecord.ToDate.Value.Date, DateTimeKind.Utc))
+            };
+
+            using var response = await Http.PostAsJsonAsync("api/vrdata/", request);
+            if (!response.IsSuccessStatusCode)
+            {
+                errorMessage = $"Unable to create the record ({(int)response.StatusCode} {response.ReasonPhrase}).";
+                return;
+            }
+
+            newRecord.IdpersonInVacation = string.Empty;
+            newRecord.IdpersonReplace = string.Empty;
+            newRecord.FromDate = DateTime.Today;
+            newRecord.ToDate = null;
+            await LoadRecordsAsync();
+            successMessage = "Vacation relay record created.";
+        }
+        catch (HttpRequestException exception)
+        {
+            errorMessage = $"Unable to create the record: {exception.Message}";
+        }
+        finally
+        {
+            isBusy = false;
+            isLoading = false;
+        }
+    }
+
+    private async Task DeleteRecordAsync(Guid id)
+    {
+        isBusy = true;
+        errorMessage = null;
+        successMessage = null;
+        try
+        {
+            using var response = await Http.DeleteAsync($"api/vrdata/{id}");
+            if (!response.IsSuccessStatusCode)
+            {
+                errorMessage = $"Unable to delete the record ({(int)response.StatusCode} {response.ReasonPhrase}).";
+                return;
+            }
+
+            if (selectedRecord?.Id == id)
+            {
+                selectedRecord = null;
+            }
+            await LoadRecordsAsync();
+            successMessage = "Vacation relay record deleted.";
+        }
+        catch (HttpRequestException exception)
+        {
+            errorMessage = $"Unable to delete the record: {exception.Message}";
+        }
+        finally
+        {
+            isBusy = false;
+            isLoading = false;
+        }
+    }
+
+    private sealed class NewVrDataRecord
+    {
+        public string IdpersonInVacation { get; set; } = string.Empty;
+
+        public string IdpersonReplace { get; set; } = string.Empty;
+
+        public DateTime FromDate { get; set; }
+
+        public DateTime? ToDate { get; set; }
+    }
+}

@@ -3,7 +3,9 @@
   <Project Path="EFCore_StartPlugins/EFCore_StartPlugins.csproj" />
   <Project Path="VacationRelay/VacationRelay.csproj" />
   <Project Path="VR.Console/VR.Console.csproj" Id="7b4b24fb-a64a-45f0-82f6-fdc032116a3f" />
+  <Project Path="VR.Context/VR.Context.csproj" Id="65f339e9-4871-4cbd-8a24-3f38f0e3132f" />
   <Project Path="VR.Nuget/VR.Nuget.csproj" />
   <Project Path="VR.Scripts/VR.Scripts.csproj" Id="f0e5c9e3-6369-4b6d-beea-0ea3da0cad72" />
   <Project Path="VR.WebAPI/VR.WebAPI.csproj" Id="c29a4d4d-3c71-4952-9406-50c9728965b7" />
+  <Project Path="VR_GUI/VR_GUI.csproj" Id="d9014991-657d-4035-bce2-060e03a5d4a0" />
 </Solution>
