@@ -48,6 +48,28 @@ public static class APIVrData
 
         vrDataGroup.MapPost("/", async (VacationrelayContext db, [FromBody] VrData data, CancellationToken ct) =>
         {
+            var errors = new Dictionary<string, string[]>();
+            if (string.IsNullOrWhiteSpace(data.IdpersonInVacation))
+            {
+                errors[nameof(data.IdpersonInVacation)] = ["The person in vacation is required."];
+            }
+            if (string.IsNullOrWhiteSpace(data.IdpersonReplace))
+            {
+                errors[nameof(data.IdpersonReplace)] = ["The replacement person is required."];
+            }
+            if (data.FromDate == default)
+            {
+                errors[nameof(data.FromDate)] = ["A valid from date is required."];
+            }
+            if (data.ToDate is not null && (data.ToDate == default(DateTimeOffset) || data.ToDate < data.FromDate))
+            {
+                errors[nameof(data.ToDate)] = ["The to date must be on or after the from date."];
+            }
+            if (errors.Count > 0)
+            {
+                return Results.ValidationProblem(errors);
+            }
+
             db.VrData.Add(data);
             await db.SaveChangesAsync(ct);
             return Results.Created($"/api/vrdata/{data.Id}", data);
