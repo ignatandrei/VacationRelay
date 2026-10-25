@@ -16,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\EFCore_StartPlugins\EFCore_StartPlugins.csproj" />
     <ProjectReference Include="..\VR.WebAPI\VR.WebAPI.csproj" />
+    <ProjectReference Include="..\VR_GUI\VR_GUI.csproj" />
   </ItemGroup>
 
 </Project>

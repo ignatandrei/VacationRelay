@@ -3,10 +3,11 @@ using EFCore_DaIn_10;
 using EFCore_Dain_Settings;
 using EFCore_DaInLoader;
 using Microsoft.AspNetCore.Mvc;
+using VR.WebAPI;
 
 namespace VR.DaIn;
 
-public static class API
+public static class APIDain
 {
     public static string PluginsDirectory = Path.Combine(AppContext.BaseDirectory, "plugins");
 
@@ -124,6 +125,8 @@ public static class API
                 return Results.Problem("Failed to save the selected plugin. Check the API logs.");
             }
         });
+
+        app.MapVrData();
     }
 
     private static string? ValidateConnection(DainEF_Data data)

@@ -21,13 +21,16 @@ public class PluginFallbackMiddleware : IMiddleware
     public PluginFallbackMiddleware(ILogger<PluginFallbackMiddleware> logger, IConfiguration configuration)
     {
         _logger = logger;
-        _fallback = configuration["Dain:NoPluginChosenUrl"] ?? "/dain";
+        _fallback =configuration["Dain:NoPluginChosenUrl"] ?? "/dain";
+        _fallback= string.IsNullOrWhiteSpace(_fallback) ? "/dain" : _fallback;
+        _fallback = _fallback.TrimEnd('/') ;
+        
     }
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
         var path = context.Request.Path.Value ?? string.Empty;
-        if (path.StartsWith("/dain", StringComparison.OrdinalIgnoreCase))
+        if (path.StartsWith(_fallback, StringComparison.OrdinalIgnoreCase))
         {
             await next(context);
             return;
@@ -68,7 +71,7 @@ public class PluginFallbackMiddleware : IMiddleware
     {
         try
         {
-            var (plugin, _) = await EfCorePluginLoader_10.RetrieveLatestChosenPlugin(VR.DaIn.API.PluginsDirectory);
+            var (plugin, _) = await EfCorePluginLoader_10.RetrieveLatestChosenPlugin(VR.DaIn.APIDain.PluginsDirectory);
             _hasPlugin = plugin != null;
         }
         catch (Exception ex)
