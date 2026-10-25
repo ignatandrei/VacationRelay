@@ -1,6 +1,6 @@
 @page "/vrdata"
 @using VR_GUI.Models
-@inject HttpClient Http
+
 
 <PageTitle>Vacation relay data</PageTitle>
 
@@ -123,6 +123,10 @@
 </section>
 
 @code {
+
+    [Inject(Key="api_host")]
+    protected HttpClient Http { get; set; } = default!;
+
     private readonly List<VrDataItem> records = [];
     private readonly NewVrDataRecord newRecord = new() { FromDate = DateTime.Today };
     private string idPersonInVacationFilter = string.Empty;
