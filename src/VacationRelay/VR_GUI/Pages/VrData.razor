@@ -1,4 +1,5 @@
 @page "/vrdata"
+@using Microsoft.AspNetCore.Components.WebAssembly.Http
 @using VR_GUI.Models
 
 
@@ -161,7 +162,11 @@
             }
 
             var url = "api/vrdata/" + (filters.Count == 0 ? string.Empty : $"?{string.Join("&", filters)}");
-            var result = await Http.GetFromJsonAsync<List<VrDataItem>>(url);
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.SetBrowserRequestCache(BrowserRequestCache.NoStore);
+            using var response = await Http.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<List<VrDataItem>>();
             records.Clear();
             records.AddRange(result ?? []);
             selectedRecord = null;

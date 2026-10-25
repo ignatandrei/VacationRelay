@@ -21,18 +21,18 @@ public static class APIVrData
 
             if (!string.IsNullOrWhiteSpace(idPersonInVacation))
             {
-                query = query.Where(data => data.IdpersonInVacation == idPersonInVacation);
+                query = query.Where(data => data.IdpersonInVacation.Contains(idPersonInVacation));
             }
 
             var replaceFilter = string.IsNullOrWhiteSpace(idPersonReplacing) ? idPersonReplace : idPersonReplacing;
             if (!string.IsNullOrWhiteSpace(replaceFilter))
             {
-                query = query.Where(data => data.IdpersonReplace == replaceFilter);
+                query = query.Where(data => data.IdpersonReplace.Contains(replaceFilter));
             }
 
             var result = await query
                 .AsNoTracking()
-                .ToListAsync(ct);
+                .ToArrayAsync(ct);
 
             return Results.Ok(result);
         });
