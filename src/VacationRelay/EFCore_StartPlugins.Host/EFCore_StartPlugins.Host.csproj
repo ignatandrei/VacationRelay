@@ -1,22 +1,26 @@
 <Project Sdk="Aspire.AppHost.Sdk/13.6.1">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <AspireUseCliBundle>true</AspireUseCliBundle>
-    <UserSecretsId>f3f8afc5-044f-47de-a0bf-02b8f9debf58</UserSecretsId>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AspireUseCliBundle>true</AspireUseCliBundle>
+		<UserSecretsId>f3f8afc5-044f-47de-a0bf-02b8f9debf58</UserSecretsId>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="BlazorExtensionsAspire" Version="131.2026.123.2107" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="BlazorExtensionsAspire" Version="131.2026.123.2107" />
+		<PackageReference Include="JavaScriptExtensionsAspire" Version="131.2026.117.2000" />
+		<PackageReference Include="AspireExtensionsResource" Version="130.2025.1121.547" />
+		<PackageReference Include="PortExtensionsAspire" Version="134.2026.829.1515" />
 
-  <ItemGroup>
-    <ProjectReference Include="..\EFCore_StartPlugins\EFCore_StartPlugins.csproj" />
-    <ProjectReference Include="..\VR.WebAPI\VR.WebAPI.csproj" />
-    <ProjectReference Include="..\VR_GUI\VR_GUI.csproj" />
-  </ItemGroup>
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\EFCore_StartPlugins\EFCore_StartPlugins.csproj" />
+		<ProjectReference Include="..\VR.WebAPI\VR.WebAPI.csproj" />
+		<ProjectReference Include="..\VR_GUI\VR_GUI.csproj" />
+	</ItemGroup>
 
 </Project>
