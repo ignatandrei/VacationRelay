@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using OpenAPISwaggerUI;
 using VR.Context;
 using VR.DaIn;
+using VR.WebAPI;
 using VR.WebAPI.Middleware;
 try
 {
@@ -21,6 +22,7 @@ builder.RegisterDain();
 
 var vacationRelayConnectionString = builder.Configuration.GetConnectionString("VacationRelay");
 var (plugin1, connection1) = await EfCorePluginLoader_10.RetrieveLatestChosenPlugin(APIDain.PluginsDirectory);
+builder.Services.AddSingleton(new VacationRelayContextAvailability(plugin1 is not null));
 
 if (plugin1 != null)
 {
@@ -59,6 +61,7 @@ builder.Services.AddCors(options => options.AddPolicy("PluginUi", policy =>
 var app = builder.Build();
 app.UseCors("PluginUi");
 
+app.UseMiddleware<VacationRelayContextAvailabilityMiddleware>();
 // Middleware that redirects requests to a fallback URL when the chosen plugin is not available.
 app.UseMiddleware<PluginFallbackMiddleware>();
 

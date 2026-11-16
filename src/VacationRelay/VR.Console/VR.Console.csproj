@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="EFCore_DaIn" Version="10.0.11.10924" />
-    <PackageReference Include="EFCore_DaInLoader" Version="10.0.11.10924" />
+    <PackageReference Include="EFCore_DaInLoader" Version="10.11.26.11114" />
     <PackageReference Include="EFCore_DaIn_10" Version="10.0.11.10925" />
   </ItemGroup>
 

@@ -97,7 +97,7 @@ public static class APIDain
             }
         });
 
-        grp.MapPost("/defaultPlugin", async ([FromBody] DainEF_Data data) =>
+        grp.MapPost("/defaultPlugin", async ([FromBody] DainEF_Data data, [FromServices] VacationRelayContextAvailability contextAvailability) =>
         {
             var error = ValidateConnection(data);
             if (error != null)
@@ -115,6 +115,7 @@ public static class APIDain
                 var b = await EfCorePluginLoader_10.SaveChosenPlugin(data, PluginsDirectory);
                 if (b)
                 {
+                    contextAvailability.MarkUnavailable();
                     return Results.Ok();
                 }
                 return Results.Problem("Failed to save plugin");
@@ -166,12 +167,13 @@ public static class APIDain
         ProvidersIndexLoaders loaders = new("https://ignatandrei.github.io/");
         var providers = await loaders.LoadFromUrlAsync();
         ArgumentNullException.ThrowIfNull(providers);
-        var efCoreVersions =new HashSet<Version>(providers.VersionsEFCore());
+        var prov = providers[Version.Parse("10.0.11")];
+        var efCoreVersions =new HashSet<Version>(prov.VersionsEFCore());
         foreach (var version in efCoreVersions)
         {
 
             Console.WriteLine($"EF Core version: {version}");
-            var runtimeOnCurrentOS = providers.LoadProviders(version);
+            var runtimeOnCurrentOS = prov.LoadProviders(version);
             foreach (var runtime in runtimeOnCurrentOS)
             {
                 string pluginDirectory = Path.Combine(pluginsDirectory, version.ToString(), runtime.Name!);

@@ -58,12 +58,13 @@ static async Task ExtractPlugins(string pluginsDirectory)
     ProvidersIndexLoaders loaders = new("https://ignatandrei.github.io/");
     var providers = await loaders.LoadFromUrlAsync();
     ArgumentNullException.ThrowIfNull(providers);
-    var efCoreVersions = providers.VersionsEFCore();
+    var prov = providers[Version.Parse("10.0.11")];
+    var efCoreVersions = prov.VersionsEFCore();
     foreach (var version in efCoreVersions)
     {
 
         Console.WriteLine($"EF Core version: {version}");
-        var runtimeOnCurrentOS = providers.LoadProviders(version);
+        var runtimeOnCurrentOS = prov.LoadProviders(version);
         foreach (var runtime in runtimeOnCurrentOS)
         {
             string pluginDirectory = Path.Combine(pluginsDirectory, version.ToString(), runtime.Name!);

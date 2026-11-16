@@ -11,7 +11,7 @@ public static class APIVrData
         var vrDataGroup = app.MapGroup("/api/vrdata");
 
         vrDataGroup.MapGet("/", async (
-            VacationrelayContext db,
+            [FromServices] VacationrelayContext db,
             [FromQuery] string? idPersonInVacation,
             [FromQuery] string? idPersonReplacing,
             [FromQuery] string? idPersonReplace,
@@ -37,7 +37,7 @@ public static class APIVrData
             return Results.Ok(result);
         });
 
-        vrDataGroup.MapGet("/{id:guid}", async (VacationrelayContext db, Guid id, CancellationToken ct) =>
+        vrDataGroup.MapGet("/{id:guid}", async ([FromServices] VacationrelayContext db, Guid id, CancellationToken ct) =>
         {
             var entity = await db.VrData
                 .AsNoTracking()
@@ -46,7 +46,7 @@ public static class APIVrData
             return entity is null ? Results.NotFound($"Entity with ID {id} not found.") : Results.Ok(entity);
         });
 
-        vrDataGroup.MapPost("/", async (VacationrelayContext db, [FromBody] VrData data, CancellationToken ct) =>
+        vrDataGroup.MapPost("/", async ([FromServices] VacationrelayContext db, [FromBody] VrData data, CancellationToken ct) =>
         {
             var errors = new Dictionary<string, string[]>();
             if (string.IsNullOrWhiteSpace(data.IdpersonInVacation))
@@ -74,7 +74,7 @@ public static class APIVrData
             await db.SaveChangesAsync(ct);
             return Results.Created($"/api/vrdata/{data.Id}", data);
         });
-
+        
         //vrDataGroup.MapPut("/{id:guid}", async (VacationrelayContext db, Guid id, [FromBody] VrData input, CancellationToken ct) =>
         //{
         //    var entity = await db.VrData.FirstOrDefaultAsync(data => data.Id == id, ct);
@@ -92,7 +92,7 @@ public static class APIVrData
         //    return Results.Ok(entity);
         //});
 
-        vrDataGroup.MapDelete("/{id:guid}", async (VacationrelayContext db, Guid id, CancellationToken ct) =>
+        vrDataGroup.MapDelete("/{id:guid}", async ([FromServices] VacationrelayContext db, Guid id, CancellationToken ct) =>
         {
             var entity = await db.VrData.FirstOrDefaultAsync(data => data.Id == id, ct);
             if (entity is null)
@@ -104,5 +104,33 @@ public static class APIVrData
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
         });
+    }
+}
+
+internal sealed class VacationRelayContextAvailability(bool isAvailable)
+{
+    private int _isAvailable = isAvailable ? 1 : 0;
+
+    public bool IsAvailable => Volatile.Read(ref _isAvailable) == 1;
+
+    public void MarkUnavailable() => Volatile.Write(ref _isAvailable, 0);
+}
+
+internal sealed class VacationRelayContextAvailabilityMiddleware(
+    RequestDelegate next,
+    VacationRelayContextAvailability availability)
+{
+    public async Task InvokeAsync(HttpContext context)
+    {
+        if (context.Request.Path.StartsWithSegments("/api/vrdata") && !availability.IsAvailable)
+        {
+            await Results.Problem(
+                "Vacation data is unavailable because no database provider was loaded at startup or a provider was changed. Restart the application after selecting a provider.",
+                statusCode: StatusCodes.Status503ServiceUnavailable)
+                .ExecuteAsync(context);
+            return;
+        }
+
+        await next(context);
     }
 }
