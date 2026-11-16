@@ -106,3 +106,31 @@ public static class APIVrData
         });
     }
 }
+
+internal sealed class VacationRelayContextAvailability(bool isAvailable)
+{
+    private int _isAvailable = isAvailable ? 1 : 0;
+
+    public bool IsAvailable => Volatile.Read(ref _isAvailable) == 1;
+
+    public void MarkUnavailable() => Volatile.Write(ref _isAvailable, 0);
+}
+
+internal sealed class VacationRelayContextAvailabilityMiddleware(
+    RequestDelegate next,
+    VacationRelayContextAvailability availability)
+{
+    public async Task InvokeAsync(HttpContext context)
+    {
+        if (context.Request.Path.StartsWithSegments("/api/vrdata") && !availability.IsAvailable)
+        {
+            await Results.Problem(
+                "Vacation data is unavailable because no database provider was loaded at startup or a provider was changed. Restart the application after selecting a provider.",
+                statusCode: StatusCodes.Status503ServiceUnavailable)
+                .ExecuteAsync(context);
+            return;
+        }
+
+        await next(context);
+    }
+}

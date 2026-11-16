@@ -97,7 +97,7 @@ public static class APIDain
             }
         });
 
-        grp.MapPost("/defaultPlugin", async ([FromBody] DainEF_Data data) =>
+        grp.MapPost("/defaultPlugin", async ([FromBody] DainEF_Data data, [FromServices] VacationRelayContextAvailability contextAvailability) =>
         {
             var error = ValidateConnection(data);
             if (error != null)
@@ -115,6 +115,7 @@ public static class APIDain
                 var b = await EfCorePluginLoader_10.SaveChosenPlugin(data, PluginsDirectory);
                 if (b)
                 {
+                    contextAvailability.MarkUnavailable();
                     return Results.Ok();
                 }
                 return Results.Problem("Failed to save plugin");
